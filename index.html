@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pixel Strawberry Cream Cake (24 Candles)</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="stage">
+    <h1 class="title">HAPPY 24</h1>
+
+    <div class="gb-frame" role="img" aria-label="像素風三層草莓奶油生日蛋糕，24根蠟燭">
+      <div class="cake">
+
+        <!-- Candles (24) -->
+        <div class="candles" id="candles"></div>
+
+        <!-- Cake top decorations -->
+        <div class="top-deco">
+          <div class="cream-drip"></div>
+          <div class="strawberries">
+            <div class="strawb s1"></div>
+            <div class="strawb s2"></div>
+            <div class="strawb s3"></div>
+            <div class="strawb s4"></div>
+            <div class="strawb s5"></div>
+          </div>
+        </div>
+
+        <!-- 3 tiers -->
+        <div class="tier tier-1">
+          <div class="stripe"></div>
+        </div>
+        <div class="tier tier-2">
+          <div class="stripe"></div>
+        </div>
+        <div class="tier tier-3">
+          <div class="stripe"></div>
+        </div>
+
+        <!-- Plate + shadow -->
+        <div class="plate"></div>
+        <div class="shadow"></div>
+      </div>
+    </div>
+
+    <p class="hint">Tip: 放大縮小不會糊，保留像素邊緣。</p>
+  </main>
+
+  <script>
+    // Generate 24 candles in a neat grid-ish layout on the top tier.
+    const holder = document.getElementById("candles");
+
+    const CANDLE_COUNT = 24;
+    // 2 rows x 12 candles
+    const rows = 2;
+    const cols = 12;
+
+    for (let i = 0; i < CANDLE_COUNT; i++) {
+      const c = document.createElement("div");
+      c.className = "candle";
+
+      const flame = document.createElement("div");
+      flame.className = "flame";
+
+      const wick = document.createElement("div");
+      wick.className = "wick";
+
+      c.appendChild(flame);
+      c.appendChild(wick);
+
+      // Position
+      const r = Math.floor(i / cols);
+      const col = i % cols;
+
+      // Pixel-ish spacing
+      // You can tweak these to move candles around.
+      c.style.setProperty("--x", col);
+      c.style.setProperty("--y", r);
+
+      // Slight variety: alternate candle colors
+      if (i % 3 === 0) c.classList.add("c1");
+      if (i % 3 === 1) c.classList.add("c2");
+      if (i % 3 === 2) c.classList.add("c3");
+
+      // Slight flicker offset
+      flame.style.animationDelay = (i * 0.05) + "s";
+
+      holder.appendChild(c);
+    }
+  </script>
+</body>
+</html>
+
