@@ -3,93 +3,147 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pixel Strawberry Cream Cake (24 Candles)</title>
+  <title>Pixel Strawberry Cream Cake</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <main class="stage">
-    <h1 class="title">HAPPY 24</h1>
+  <main class="wrap">
+    <h1 class="title">Strawberry Cream Cake</h1>
 
-    <div class="gb-frame" role="img" aria-label="像素風三層草莓奶油生日蛋糕，24根蠟燭">
-      <div class="cake">
-
-        <!-- Candles (24) -->
-        <div class="candles" id="candles"></div>
-
-        <!-- Cake top decorations -->
-        <div class="top-deco">
-          <div class="cream-drip"></div>
-          <div class="strawberries">
-            <div class="strawb s1"></div>
-            <div class="strawb s2"></div>
-            <div class="strawb s3"></div>
-            <div class="strawb s4"></div>
-            <div class="strawb s5"></div>
-          </div>
-        </div>
-
-        <!-- 3 tiers -->
-        <div class="tier tier-1">
-          <div class="stripe"></div>
-        </div>
-        <div class="tier tier-2">
-          <div class="stripe"></div>
-        </div>
-        <div class="tier tier-3">
-          <div class="stripe"></div>
-        </div>
-
-        <!-- Plate + shadow -->
-        <div class="plate"></div>
-        <div class="shadow"></div>
-      </div>
+    <div class="card">
+      <canvas id="view" aria-label="像素風草莓奶油三層生日蛋糕（24根蠟燭）"></canvas>
     </div>
 
-    <p class="hint">Tip: 放大縮小不會糊，保留像素邊緣。</p>
+    <p class="tip">想更像參考圖：把下面 JS 的 <b>STICKER_OUTLINE</b>、<b>PX</b>、<b>CANDLE_COUNT</b> 改一改就好。</p>
   </main>
 
-  <script>
-    // Generate 24 candles in a neat grid-ish layout on the top tier.
-    const holder = document.getElementById("candles");
+<script>
+(() => {
+  // ===== 你最常改的三個地方 =====
+  const PX = 6;                 // 像素放大倍率（越大越顆粒）
+  const CANDLE_COUNT = 24;       // 蠟燭數量（你要 24）
+  const STICKER_OUTLINE = {      // 貼紙外框厚度
+    white: 3,                    // 白邊半徑
+    shadow: 5                    // 淡灰外圈半徑
+  };
 
-    const CANDLE_COUNT = 24;
-    // 2 rows x 12 candles
-    const rows = 2;
-    const cols = 12;
+  // 內部畫布尺寸（低解析度像素圖）
+  const W = 160;
+  const H = 120;
 
-    for (let i = 0; i < CANDLE_COUNT; i++) {
-      const c = document.createElement("div");
-      c.className = "candle";
+  const view = document.getElementById("view");
+  view.width = W * PX;
+  view.height = H * PX;
 
-      const flame = document.createElement("div");
-      flame.className = "flame";
+  const v = view.getContext("2d");
+  v.imageSmoothingEnabled = false;
 
-      const wick = document.createElement("div");
-      wick.className = "wick";
+  // Offscreen: cake sprite
+  const base = document.createElement("canvas");
+  base.width = W; base.height = H;
+  const b = base.getContext("2d");
+  b.imageSmoothingEnabled = false;
 
-      c.appendChild(flame);
-      c.appendChild(wick);
+  // --- Palette（偏向你那張圖的色感） ---
+  const P = {
+    outline: "#3a2026",
+    outline2: "#5b2b35",
+    sponge: "#f3c08a",
+    sponge2: "#e9a86b",
+    cream: "#fff8fb",
+    cream2: "#ffd8e6",
+    jam: "#d84a6a",
+    jam2: "#b83b58",
+    straw: "#ea3a57",
+    straw2: "#b9243a",
+    seed: "#ffd36a",
+    leaf: "#3aa56a",
+    leaf2: "#267b4c",
+    candle: ["#ff8fb1", "#ffb36a", "#8ad7ff"], // 蠟燭身體變化
+    flame1: "#ffd36a",
+    flame2: "#ff8a4d",
+  };
 
-      // Position
-      const r = Math.floor(i / cols);
-      const col = i % cols;
+  // ===== Pixel helpers =====
+  function px(x, y, c) {
+    if (x < 0 || y < 0 || x >= W || y >= H) return;
+    b.fillStyle = c;
+    b.fillRect(x, y, 1, 1);
+  }
 
-      // Pixel-ish spacing
-      // You can tweak these to move candles around.
-      c.style.setProperty("--x", col);
-      c.style.setProperty("--y", r);
+  function fillEllipse(cx, cy, rx, ry, c) {
+    const x0 = Math.floor(cx - rx), x1 = Math.ceil(cx + rx);
+    const y0 = Math.floor(cy - ry), y1 = Math.ceil(cy + ry);
+    const rx2 = rx * rx, ry2 = ry * ry;
 
-      // Slight variety: alternate candle colors
-      if (i % 3 === 0) c.classList.add("c1");
-      if (i % 3 === 1) c.classList.add("c2");
-      if (i % 3 === 2) c.classList.add("c3");
-
-      // Slight flicker offset
-      flame.style.animationDelay = (i * 0.05) + "s";
-
-      holder.appendChild(c);
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const dx = x - cx, dy = y - cy;
+        if ((dx*dx)/rx2 + (dy*dy)/ry2 <= 1) px(x, y, c);
+      }
     }
-  </script>
-</body>
-</html>
+  }
 
+  function blob(x, y, r, c) {
+    // 小圓形像素奶油塊
+    for (let yy = -r; yy <= r; yy++) {
+      for (let xx = -r; xx <= r; xx++) {
+        if (xx*xx + yy*yy <= r*r) px(x + xx, y + yy, c);
+      }
+    }
+  }
+
+  function drip(x, yTop, len, c) {
+    for (let i = 0; i < len; i++) px(x, yTop + i, c);
+  }
+
+  function strawberryHalf(x, y) {
+    // 參考圖那種「半顆草莓」的小像素
+    const pts = [
+      [0,2],[1,1],[2,1],[3,1],[4,2],
+      [0,3],[1,2],[2,2],[3,2],[4,3],
+      [1,3],[2,3],[3,3],
+      [2,4],
+    ];
+    for (const [dx,dy] of pts) px(x+dx, y+dy, P.straw);
+    // darker edge
+    px(x+0,y+3,P.straw2); px(x+4,y+3,P.straw2); px(x+2,y+4,P.straw2);
+    // seeds
+    px(x+2,y+2,P.seed); px(x+1,y+3,P.seed); px(x+3,y+3,P.seed);
+    // tiny leaf hint
+    px(x+2,y+0,P.leaf); px(x+1,y+0,P.leaf2); px(x+3,y+0,P.leaf2);
+  }
+
+  function topStrawberry(x, y) {
+    // 上面那圈比較大顆
+    fillEllipse(x+3, y+4, 4.2, 3.6, P.straw);
+    fillEllipse(x+3, y+5, 4.2, 3.6, P.straw2); // 下緣加深
+    px(x+1,y+3,P.seed); px(x+3,y+4,P.seed); px(x+5,y+5,P.seed);
+    // leaf
+    px(x+3,y+0,P.leaf); px(x+2,y+1,P.leaf2); px(x+4,y+1,P.leaf2);
+  }
+
+  // ===== Cake drawing =====
+  function drawTier(cx, cy, rx, ry) {
+    // outline base (bigger)
+    fillEllipse(cx, cy, rx+1, ry+1, P.outline);
+
+    // sponge body (slightly lower)
+    fillEllipse(cx, cy+2, rx, ry, P.sponge);
+    fillEllipse(cx, cy+3, rx, ry, P.sponge2); // bottom shading
+
+    // top cream (slightly upper)
+    fillEllipse(cx, cy-3, rx-2, ry-3, P.cream);
+    fillEllipse(cx, cy-2, rx-2, ry-3, P.cream2); // subtle shading
+
+    // edge cream blobs
+    for (let i = -rx+6; i <= rx-6; i += 8) {
+      const yy = Math.floor(cy + ry - 2 - Math.abs(i) * 0.02);
+      blob(cx + i, yy, 2, P.cream);
+      blob(cx + i + 1, yy + 1, 2, P.cream2);
+    }
+
+    // front drips (like reference)
+    drip(cx, cy+2, 6, P.cream);
+    drip(cx+6, cy+1, 4, P.cream);
+    drip(cx-6, cy+1, 4, P.cream2
