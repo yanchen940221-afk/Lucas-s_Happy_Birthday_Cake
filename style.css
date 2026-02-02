@@ -1,0 +1,293 @@
+/* ====== Pixel-ish base ====== */
+:root{
+  --px: 6px;                 /* pixel size: increase for chunkier pixels */
+  --scale: 1;                /* overall scale */
+  --ink: #1e1b1b;
+
+  /* early handheld-ish palette (color but limited) */
+  --bg: #f4efe6;
+  --frame: #d8d1c5;
+  --screen: #efe7da;
+
+  --cream: #fff3f6;
+  --cream2: #ffd7e6;
+
+  --cake: #f3b3c7;
+  --cake2: #e98aaa;
+
+  --jam: #d84a6a;
+  --jam2: #b83b58;
+
+  --strawb: #e23b55;
+  --strawb2: #b9223a;
+  --leaf: #3aa56a;
+  --leaf2: #267b4c;
+
+  --candleA: #ffe27a;
+  --candleB: #7ad7ff;
+  --candleC: #b9ff8a;
+
+  --flame1: #ffb24d;
+  --flame2: #ff6b6b;
+
+  --shadow: rgba(0,0,0,0.18);
+}
+
+*{ box-sizing: border-box; }
+html, body { height: 100%; }
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 20% 20%, #ffffff 0 20%, transparent 21%),
+    radial-gradient(circle at 80% 30%, #ffffff 0 14%, transparent 15%),
+    radial-gradient(circle at 50% 80%, #ffffff 0 18%, transparent 19%),
+    var(--bg);
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.stage{
+  min-height: 100%;
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  justify-content:center;
+  gap: 14px;
+  padding: 28px 14px;
+}
+
+.title{
+  margin:0;
+  letter-spacing: 0.12em;
+  font-size: 18px;
+  opacity: 0.9;
+  text-shadow: 0 1px 0 #fff;
+}
+
+.hint{
+  margin:0;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* ====== Game Boy-ish frame ====== */
+.gb-frame{
+  background: linear-gradient(#f6f0e7, var(--frame));
+  border: calc(var(--px)*1) solid #bdb6ab;
+  box-shadow:
+    0 calc(var(--px)*2) 0 rgba(0,0,0,0.06),
+    0 calc(var(--px)*6) calc(var(--px)*6) rgba(0,0,0,0.10);
+  padding: calc(var(--px)*3);
+  border-radius: calc(var(--px)*3);
+}
+
+/* We draw everything with "pixel blocks" using box-shadow and hard edges */
+.cake{
+  width: calc(var(--px) * 64);
+  height: calc(var(--px) * 58);
+  background: var(--screen);
+  border: calc(var(--px)*1) solid #cbbfb2;
+  border-radius: calc(var(--px)*2);
+  position: relative;
+  overflow:hidden;
+  image-rendering: pixelated;
+}
+
+/* ====== Candle field ====== */
+.candles{
+  position:absolute;
+  left: 50%;
+  top: calc(var(--px) * 6);
+  transform: translateX(-50%);
+  width: calc(var(--px) * 52);
+  height: calc(var(--px) * 10);
+  /* This area sits above the top tier */
+  pointer-events: none;
+}
+
+.candle{
+  position:absolute;
+  /* grid positioning */
+  left: calc(var(--px) * (2 + var(--x) * 4));
+  top:  calc(var(--px) * (0 + var(--y) * 5));
+
+  width: calc(var(--px) * 2);
+  height: calc(var(--px) * 6);
+  background: var(--candleA);
+  border: calc(var(--px)*0.5) solid rgba(0,0,0,0.18);
+  border-bottom-color: rgba(0,0,0,0.28);
+  box-shadow:
+    calc(var(--px)*0) calc(var(--px)*0) 0 rgba(255,255,255,0.35) inset;
+}
+
+.candle.c1{ background: var(--candleA); }
+.candle.c2{ background: var(--candleB); }
+.candle.c3{ background: var(--candleC); }
+
+.wick{
+  position:absolute;
+  left: 50%;
+  top: calc(var(--px) * 0.6);
+  transform: translateX(-50%);
+  width: calc(var(--px) * 0.6);
+  height: calc(var(--px) * 1);
+  background: #3a2a2a;
+}
+
+.flame{
+  position:absolute;
+  left: 50%;
+  top: calc(var(--px) * -2);
+  transform: translateX(-50%);
+  width: calc(var(--px) * 2);
+  height: calc(var(--px) * 2);
+  background: var(--flame1);
+  box-shadow:
+    0 0 0 calc(var(--px)*0.3) rgba(0,0,0,0.12),
+    0 0 calc(var(--px)*1.2) rgba(255,125,70,0.25);
+  clip-path: polygon(50% 0%, 80% 30%, 60% 100%, 40% 100%, 20% 30%);
+  animation: flicker 0.9s steps(2, end) infinite;
+}
+
+@keyframes flicker{
+  0%{ filter: brightness(1); transform: translateX(-50%) translateY(0); background: var(--flame1); }
+  50%{ filter: brightness(1.08); transform: translateX(-50%) translateY(calc(var(--px)*0.3)); background: var(--flame2); }
+  100%{ filter: brightness(1); transform: translateX(-50%) translateY(0); background: var(--flame1); }
+}
+
+/* ====== Top decorations ====== */
+.top-deco{
+  position:absolute;
+  left:50%;
+  top: calc(var(--px) * 14);
+  transform: translateX(-50%);
+  width: calc(var(--px) * 56);
+  height: calc(var(--px) * 10);
+}
+
+.cream-drip{
+  position:absolute;
+  left:0;
+  top: calc(var(--px) * 2);
+  width: 100%;
+  height: calc(var(--px) * 6);
+  background: linear-gradient(var(--cream), var(--cream2));
+  border: calc(var(--px)*0.7) solid rgba(0,0,0,0.12);
+  border-bottom-color: rgba(0,0,0,0.18);
+  /* pixel drips */
+  box-shadow:
+    calc(var(--px)*6)  calc(var(--px)*2) 0 0 var(--cream2),
+    calc(var(--px)*12) calc(var(--px)*3) 0 0 var(--cream2),
+    calc(var(--px)*18) calc(var(--px)*1) 0 0 var(--cream2),
+    calc(var(--px)*24) calc(var(--px)*3) 0 0 var(--cream2),
+    calc(var(--px)*30) calc(var(--px)*2) 0 0 var(--cream2),
+    calc(var(--px)*36) calc(var(--px)*3) 0 0 var(--cream2),
+    calc(var(--px)*42) calc(var(--px)*1) 0 0 var(--cream2);
+}
+
+.strawberries{
+  position:absolute;
+  left:0; top:0;
+  width:100%;
+  height:100%;
+}
+
+.strawb{
+  position:absolute;
+  width: calc(var(--px) * 6);
+  height: calc(var(--px) * 6);
+  background: var(--strawb);
+  border: calc(var(--px)*0.7) solid rgba(0,0,0,0.16);
+  box-shadow:
+    calc(var(--px)*1) calc(var(--px)*1) 0 0 var(--strawb2) inset;
+  clip-path: polygon(50% 0%, 85% 20%, 100% 55%, 70% 100%, 30% 100%, 0% 55%, 15% 20%);
+}
+
+.strawb::before{
+  content:"";
+  position:absolute;
+  left: 50%;
+  top: calc(var(--px) * -1.6);
+  transform: translateX(-50%);
+  width: calc(var(--px) * 4);
+  height: calc(var(--px) * 2.2);
+  background: var(--leaf);
+  border: calc(var(--px)*0.6) solid rgba(0,0,0,0.14);
+  box-shadow:
+    calc(var(--px)*0.8) 0 0 0 var(--leaf2) inset;
+  clip-path: polygon(50% 0%, 100% 60%, 70% 100%, 50% 80%, 30% 100%, 0% 60%);
+}
+
+.s1{ left: calc(var(--px) * 6);  top: calc(var(--px) * 0.8); }
+.s2{ left: calc(var(--px) * 16); top: calc(var(--px) * 0.2); }
+.s3{ left: calc(var(--px) * 26); top: calc(var(--px) * 0.8); }
+.s4{ left: calc(var(--px) * 36); top: calc(var(--px) * 0.2); }
+.s5{ left: calc(var(--px) * 46); top: calc(var(--px) * 0.8); }
+
+/* ====== Three tiers ====== */
+.tier{
+  position:absolute;
+  left:50%;
+  transform: translateX(-50%);
+  border: calc(var(--px)*0.8) solid rgba(0,0,0,0.16);
+  box-shadow:
+    0 calc(var(--px)*1) 0 rgba(0,0,0,0.07) inset;
+}
+
+.tier .stripe{
+  position:absolute;
+  left:0; right:0;
+  top: calc(var(--px) * 3);
+  height: calc(var(--px) * 2);
+  background: var(--jam);
+  box-shadow:
+    0 calc(var(--px) * 2) 0 0 var(--jam2) inset;
+}
+
+.tier-1{
+  top: calc(var(--px) * 18);
+  width: calc(var(--px) * 56);
+  height: calc(var(--px) * 12);
+  background: linear-gradient(var(--cream), var(--cake));
+  border-radius: calc(var(--px)*2);
+}
+
+.tier-2{
+  top: calc(var(--px) * 30);
+  width: calc(var(--px) * 50);
+  height: calc(var(--px) * 12);
+  background: linear-gradient(var(--cream), var(--cake2));
+  border-radius: calc(var(--px)*2);
+}
+
+.tier-3{
+  top: calc(var(--px) * 42);
+  width: calc(var(--px) * 44);
+  height: calc(var(--px) * 10);
+  background: linear-gradient(var(--cream), var(--cake));
+  border-radius: calc(var(--px)*2);
+}
+
+.plate{
+  position:absolute;
+  left:50%;
+  bottom: calc(var(--px) * 4);
+  transform: translateX(-50%);
+  width: calc(var(--px) * 58);
+  height: calc(var(--px) * 6);
+  background: #f7f4ef;
+  border: calc(var(--px)*0.8) solid rgba(0,0,0,0.12);
+  border-radius: calc(var(--px)*3);
+}
+
+.shadow{
+  position:absolute;
+  left:50%;
+  bottom: calc(var(--px) * 2);
+  transform: translateX(-50%);
+  width: calc(var(--px) * 44);
+  height: calc(var(--px) * 3);
+  background: var(--shadow);
+  border-radius: calc(var(--px) * 3);
+  filter: blur(calc(var(--px) * 0.2));
+}
