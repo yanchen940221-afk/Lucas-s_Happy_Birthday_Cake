@@ -146,4 +146,144 @@
     // front drips (like reference)
     drip(cx, cy+2, 6, P.cream);
     drip(cx+6, cy+1, 4, P.cream);
-    drip(cx-6, cy+1, 4, P.cream2
+    drip(cx-6, cy+1, 4, P.cream2);
+
+    // inner outline accent
+    // (draw a thinner ring by drawing a slightly smaller outline2 on top edge area)
+    fillEllipse(cx, cy+1, rx-2, ry-1, P.outline2);
+    fillEllipse(cx, cy+2, rx-3, ry-2, P.sponge);
+  }
+
+  function drawFillingStrawberries(y, startX, count, step) {
+    for (let i = 0; i < count; i++) strawberryHalf(startX + i*step, y);
+  }
+
+  function drawCandles() {
+    // 2 rows x 12 = 24 candles
+    const cols = 12;
+    const rows = Math.ceil(CANDLE_COUNT / cols);
+
+    const topY = 20;        // 蠟燭底座高度（調這個會整排上下移）
+    const startX = 42;      // 左邊起點（調這個會左右移）
+    const gapX = 6;         // 每根蠟燭間距
+    const rowGap = 7;
+
+    for (let i = 0; i < CANDLE_COUNT; i++) {
+      const r = Math.floor(i / cols);
+      const c = i % cols;
+
+      const x = startX + c * gapX;
+      const y = topY + r * rowGap;
+
+      const body = P.candle[i % P.candle.length];
+
+      // flame (pixel)
+      px(x+1, y-7, P.flame1);
+      px(x+1, y-6, P.flame2);
+      px(x,   y-6, P.flame1);
+      px(x+2, y-6, P.flame1);
+      px(x+1, y-5, P.flame1);
+
+      // wick
+      px(x+1, y-4, P.outline);
+
+      // candle body (3px wide)
+      for (let yy = 0; yy < 8; yy++) {
+        px(x,   y+yy, body);
+        px(x+1, y+yy, body);
+        px(x+2, y+yy, body);
+        // highlight
+        if (yy % 2 === 0) px(x, y+yy, "#ffd6e4");
+      }
+
+      // small "wax drip" / base (yellow-ish like reference)
+      px(x+1, y+8, P.seed);
+      px(x,   y+8, P.flame2);
+      px(x+2, y+8, P.flame2);
+      px(x+1, y+9, P.flame2);
+    }
+  }
+
+  function drawCake() {
+    b.clearRect(0,0,W,H);
+
+    // --- 3 tiers (positions tuned to resemble your reference) ---
+    drawTier(80, 86, 62, 18);  // bottom
+    drawTier(80, 62, 54, 16);  // middle
+    drawTier(80, 40, 46, 14);  // top
+
+    // --- strawberry fillings between tiers ---
+    drawFillingStrawberries(74, 34, 10, 10);
+    drawFillingStrawberries(52, 38, 9,  10);
+
+    // --- top strawberry ring behind candles ---
+    for (let i = 0; i < 7; i++) topStrawberry(44 + i*12, 10);
+
+    // --- candles on top ---
+    drawCandles();
+  }
+
+  // ===== Sticker outline (white border + soft outer) =====
+  function tintCanvas(src, color) {
+    const t = document.createElement("canvas");
+    t.width = W; t.height = H;
+    const tx = t.getContext("2d");
+    tx.imageSmoothingEnabled = false;
+
+    tx.clearRect(0,0,W,H);
+    tx.drawImage(src, 0, 0);
+
+    tx.globalCompositeOperation = "source-in";
+    tx.fillStyle = color;
+    tx.fillRect(0,0,W,H);
+
+    tx.globalCompositeOperation = "source-over";
+    return t;
+  }
+
+  function makeSticker(src) {
+    const out = document.createElement("canvas");
+    out.width = W; out.height = H;
+    const o = out.getContext("2d");
+    o.imageSmoothingEnabled = false;
+
+    const white = tintCanvas(src, "#ffffff");
+    const soft  = tintCanvas(src, "rgba(110,70,80,0.25)");
+
+    // outer soft ring
+    const R2 = STICKER_OUTLINE.shadow;
+    for (let dy = -R2; dy <= R2; dy++) {
+      for (let dx = -R2; dx <= R2; dx++) {
+        if (dx*dx + dy*dy <= R2*R2) o.drawImage(soft, dx, dy);
+      }
+    }
+
+    // white border
+    const R1 = STICKER_OUTLINE.white;
+    for (let dy = -R1; dy <= R1; dy++) {
+      for (let dx = -R1; dx <= R1; dx++) {
+        if (dx*dx + dy*dy <= R1*R1) o.drawImage(white, dx, dy);
+      }
+    }
+
+    // original sprite on top
+    o.drawImage(src, 0, 0);
+    return out;
+  }
+
+  // ===== Render =====
+  function render() {
+    drawCake();
+    const sticker = makeSticker(base);
+
+    v.clearRect(0,0,view.width,view.height);
+    v.imageSmoothingEnabled = false;
+    v.drawImage(sticker, 0, 0, W*PX, H*PX);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
+
